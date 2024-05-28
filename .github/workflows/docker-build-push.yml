@@ -8,6 +8,7 @@ on:
         required: false
         type: string
       DOCKER_BUILD_ARGS:
+        default: DUMMY=dummy
         required: false
         type: string
     secrets:
@@ -36,11 +37,7 @@ jobs:
       - name: Docker login
         run: echo $DOCKER_REGISTRY_SECRET | docker login -u $DOCKER_REGISTRY_USER --password-stdin $DOCKER_REGISTRY_SERVER
       - name: Build the Docker image
-        if: ${{ ! env.DOCKER_BUILD_ARGS }}
-        run: docker build -t $DOCKER_IMAGE_NAME $DOCKER_CONTEXT_PATH
-      - name: Build the Docker image
-        if: env.DOCKER_BUILD_ARGS
-        run: docker build --build-arg $DOCKER_BUILD_ARGS -t $DOCKER_IMAGE_NAME $DOCKER_CONTEXT_PATH
+        run: docker build --build-arg "${DOCKER_BUILD_ARGS}" -t $DOCKER_IMAGE_NAME $DOCKER_CONTEXT_PATH
       - name: Push image
         run: docker push $DOCKER_IMAGE_NAME
 
