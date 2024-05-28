@@ -7,6 +7,9 @@ on:
         default: https://registry.hub.docker.com
         required: false
         type: string
+      DOCKER_BUILD_ARGS:
+        required: false
+        type: string
     secrets:
       DOCKER_REGISTRY_USER:
         required: true
@@ -19,6 +22,7 @@ on:
 
 env:
   DOCKER_REGISTRY_SERVER: ${{ inputs.DOCKER_REGISTRY_SERVER }}
+  DOCKER_BUILD_ARGS: ${{ inputs.DOCKER_BUILD_ARGS }}
   DOCKER_REGISTRY_USER: ${{ secrets.DOCKER_REGISTRY_USER }}
   DOCKER_REGISTRY_SECRET: ${{ secrets.DOCKER_REGISTRY_SECRET }}
   DOCKER_IMAGE_NAME: ${{ secrets.DOCKER_IMAGE_NAME }}
@@ -32,7 +36,11 @@ jobs:
       - name: Docker login
         run: echo $DOCKER_REGISTRY_SECRET | docker login -u $DOCKER_REGISTRY_USER --password-stdin $DOCKER_REGISTRY_SERVER
       - name: Build the Docker image
+        if: ${{ ! env.DOCKER_BUILD_ARGS }}
         run: docker build -t $DOCKER_IMAGE_NAME $DOCKER_CONTEXT_PATH
+      - name: Build the Docker image
+        if: env.DOCKER_BUILD_ARGS
+        run: docker build --build-arg $DOCKER_BUILD_ARGS -t $DOCKER_IMAGE_NAME $DOCKER_CONTEXT_PATH
       - name: Push image
         run: docker push $DOCKER_IMAGE_NAME
 
